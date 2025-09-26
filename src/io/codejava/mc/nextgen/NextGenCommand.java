@@ -92,24 +92,24 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
             }
 
             StructureSearchResult strongholdLoc = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false);
-            Location stronghold = null;
+            //Location stronghold = null;
             if (strongholdLoc != null) {
                 //stronghold = strongholdLoc.getLocation();
-                stronghold = strongholdLoc != null ? strongholdLoc.getLocation() : null;
+                Location stronghold = strongholdLoc != null ? strongholdLoc.getLocation() : null;
             }
             //Location fortressLoc = nether.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
-            Location fortressLoc = null;
+            //Location fortressLoc = null;
             StructureSearchResult result = nether.locateNearestStructure(player.getLocation(), Structure.FORTRESS, 5000, false);
             
             if (result != null) {
                 //fortressLoc = result.getLocation();
-                fortressLoc = result != null ? result.getLocation() : null;
+                Location fortressLoc = result != null ? result.getLocation() : null;
             }
             BiomeSearchResult warpedForestLoc = nether.locateNearestBiome(player.getLocation(), 5000, 1, 1, Biome.WARPED_FOREST);
-            Location warpedForest = null;
+            //Location warpedForest = null;
             if (warpedForestLoc != null) {
                 //warpedForest = warpedForestLoc.getLocation();
-                warpedForest = warpedForestLoc != null ? warpedForestLoc.getLocation() : null;
+                Location warpedForest = warpedForestLoc != null ? warpedForestLoc.getLocation() : null;
             }
             
             if (strongholdLoc == null || fortressLoc == null || warpedForestLoc == null) {
