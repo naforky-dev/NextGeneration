@@ -40,17 +40,30 @@ public class NextGen extends JavaPlugin implements Listener {
 
         // The advancement for picking up the dragon egg is "minecraft:end/dragon_egg"
         if (advancementKey.toString().equals("minecraft:end/dragon_egg")) {
-            String playerName = event.getPlayer().getName();
+            Player winner = event.getPlayer();
+            String winnerName = winner.getName();
 
-            // Broadcast a fancy message to everyone on the server! 🏆
-            Bukkit.broadcastMessage(ChatColor.GOLD + "========================================");
-            Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + playerName + "이(가) 가장 먼저 발전 과제를 달성했습니다!");
-            Bukkit.broadcastMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "게임을 종료합니다.");
-            Bukkit.broadcastMessage(ChatColor.GOLD + "========================================");
+            // --- NEW: Title Logic ---
+            // Create the title text using Paper's modern Adventure API
+            final Component mainTitle = Component.text(winnerName + " 승리!", NamedTextColor.YELLOW);
+            
+            // Define how long the title should fade in, stay, and fade out
+            final Title.Times times = Title.Times.times(Duration.ofSeconds(1), Duration.ofSeconds(4), Duration.ofSeconds(1));
+            
+            // Create the title object
+            final Title title = Title.title(mainTitle, Component.empty(), times); // Component.empty() means no subtitle
 
-            // The game is now over
+            // Show the title to every player online
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                onlinePlayer.showTitle(title);
+            }
+            
+            // We can keep the chat message too for a permanent record
+            Bukkit.broadcast(Component.text(winnerName + "이(가) 가장 먼저 목표 발전 과제를 달성했습니다!", NamedTextColor.GOLD));
+
+            // End the game
+            Bukkit.broadcast(Component.text("게임을 종료합니다.", NamedTextColor.GRAY));
             setGameActive(false);
-            // You might want to remove the world border here as well
             Bukkit.getWorlds().forEach(world -> world.getWorldBorder().reset());
         }
     }
