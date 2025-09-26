@@ -1,2 +1,11 @@
 # NextGeneration
-한정된 크기의 월드에서 가장 먼저 [그다음 세대] 발전 과제를 깨는 플레이어가 승리하는 플러그인
+한정된 크기의 월드에서 가장 먼저 `[그다음 세대]` 발전 과제를 깨는 플레이어가 승리하는 플러그인
+
+# Usage
+`/nextgen <command>`
+
+`<command>`:
+  - `start`
+  - `reload`
+  - `abort`
+  - `border <n>`
