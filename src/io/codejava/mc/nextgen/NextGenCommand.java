@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.generator.structure.Structure;
 import org.bukkit.generator.structure.StructureType;
 import org.bukkit.util.StructureSearchResult;
+import org.bukkit.util.BiomeSearchResult;
 import org.bukkit.util.Vector;
 import org.bukkit.WorldBorder;
 
@@ -93,18 +94,23 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
             StructureSearchResult strongholdLoc = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false);
             Location stronghold = null;
             if (strongholdLoc != null) {
-                //stronghold = result.getLocation();
+                //stronghold = strongholdLoc.getLocation();
                 stronghold = strongholdLoc != null ? strongholdLoc.getLocation() : null;
             }
             //Location fortressLoc = nether.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
             Location fortressLoc = null;
-            StructureSearchResult result = nether.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
+            StructureSearchResult result = nether.locateNearestStructure(player.getLocation(), StructureType.NETHER_BRIDGE, 5000, false);
             
             if (result != null) {
                 //fortressLoc = result.getLocation();
                 fortressLoc = result != null ? result.getLocation() : null;
             }
-            Location warpedForestLoc = nether.locateNearestBiome(player.getLocation(), 5000, 1, 1, Biome.WARPED_FOREST);
+            BiomeSearchResult warpedForestLoc = nether.locateNearestBiome(player.getLocation(), 5000, 1, 1, Biome.WARPED_FOREST);
+            Location warpedForest = null;
+            if (warpedForestLoc != null) {
+                //warpedForest = warpedForestLoc.getLocation();
+                warpedForest = warpedForestLoc != null ? warpedForestLoc.getLocation() : null;
+            }
             
             if (strongholdLoc == null || fortressLoc == null || warpedForestLoc == null) {
                 player.sendMessage(ChatColor.RED + "[NextGen] 필수 구조물을 찾지 못했거나 일부만 찾았습니다. 게임을 종료합니다.");
