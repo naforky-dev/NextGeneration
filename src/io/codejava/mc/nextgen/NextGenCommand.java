@@ -90,10 +90,16 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
                 return;
             }
 
-            Location strongholdLoc = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false);
+            StructureSearchResult strongholdLoc = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false);
+            Location stronghold = null;
+            if (strongholdLoc != null) {
+                //stronghold = result.getLocation();
+                stronghold = strongholdLoc != null ? strongholdLoc.getLocation() : null;
+            }
             //Location fortressLoc = nether.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
             Location fortressLoc = null;
-            StructureSearchResult result = overworld.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
+            StructureSearchResult result = nether.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
+            
             if (result != null) {
                 //fortressLoc = result.getLocation();
                 fortressLoc = result != null ? result.getLocation() : null;
