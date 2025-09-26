@@ -1,7 +1,10 @@
 package io.codejava.mc.nextgen;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Heightmap;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -11,24 +14,29 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.generator.structure.Structure;
 import org.bukkit.structure.StructureType;
+import org.bukkit.util.Vector;
+import org.bukkit.WorldBorder;
+
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class NextGenCommand implements CommandExecutor, TabCompleter {
 
+    // The main class is now NextGen
     private final NextGen plugin;
 
-    // Constructor to get the instance of our main plugin class
-    public NextGenCommand(DragonWin plugin) {
+    public NextGenCommand(NextGen plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        // ... (The rest of the onCommand logic is the same as before) ...
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("[NextGen] 이 명령어는 플레이어만 사용이 가능합니다.");
+            sender.sendMessage("이 명령어는 플레이어만 사용 가능합니다.");
             return true;
         }
 
@@ -65,82 +73,93 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
 
     private void handleStart(Player player) {
         if (plugin.isGameActive()) {
-            player.sendMessage(ChatColor.RED + "[NextGen] 게임이 이미 실행중입니다.");
+            player.sendMessage(ChatColor.RED + "게임이 이미 실행중입니다!");
             return;
         }
 
-        player.sendMessage(ChatColor.YELLOW + "[NextGen] 게임을 시작합니다. 현재 월드에서 필요한 구조물 검색 중...");
+        player.sendMessage(ChatColor.YELLOW + "[NextGen] 게임을 시작합니다! 필수 구조물을 검색 중...");
 
-        // Run the search asynchronously to avoid freezing the server
         CompletableFuture.runAsync(() -> {
             World overworld = Bukkit.getWorld("world");
             World nether = Bukkit.getWorld("world_nether");
 
             if (overworld == null || nether == null) {
-                player.sendMessage(ChatColor.RED + "[NextGen] > [NGenError] 오류: 필수 월드를 찾지 못했습니다. (world, world_nether)");
+                player.sendMessage(ChatColor.RED + "[NextGen] 오류: 다음 월드를 찾지 못했습니다. (world, world_nether)");
                 return;
             }
 
-            // --- Overworld Setup ---
-            // Find the nearest stronghold (엔드 유적/End Ruins)
             Location strongholdLoc = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false);
-            if (strongholdLoc == null) {
-                player.sendMessage(ChatColor.RED + "현재 월드에서 엔드 유적을 찾지 못했습니다. 게임을 종료합니다.");
-                return;
-            }
-
-            // --- Nether Setup ---
-            // Find the nearest fortress and warped forest (blue forest with Endermen)
             Location fortressLoc = nether.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
-            // The biome you're looking for is WARPED_FOREST
             Location warpedForestLoc = nether.locateNearestBiome(player.getLocation(), "minecraft:warped_forest", 5000, 1, 1);
             
-            if (fortressLoc == null || warpedForestLoc == null) {
-                player.sendMessage(ChatColor.RED + "네더 월드에서 푸른 숲과 포트리스 유적을 찾지 못했거나 존재하지만 현재 월드보더 크기를 벗어납니다. 게임을 종료합니다.");
+            if (strongholdLoc == null || fortressLoc == null || warpedForestLoc == null) {
+                player.sendMessage(ChatColor.RED + "[NextGen] 필수 구조물을 찾지 못했거나 일부만 찾았습니다. 게임을 종료합니다.");
                 return;
             }
 
-            // Structures are found, now set everything up on the main server thread
             Bukkit.getScheduler().runTask(plugin, () -> {
                 int size = plugin.getBorderSize();
                 
-                // Set Overworld border centered on the stronghold
                 overworld.getWorldBorder().setCenter(strongholdLoc);
                 overworld.getWorldBorder().setSize(size);
                 
-                // For the Nether, we'll center the border between the two points
                 Location netherCenter = fortressLoc.clone().add(warpedForestLoc).multiply(0.5);
                 nether.getWorldBorder().setCenter(netherCenter);
-                nether.getWorldBorder().setSize(size); // Nether border is 1:1 with Overworld
+                nether.getWorldBorder().setSize(size);
 
                 plugin.setGameActive(true);
-                Bukkit.broadcastMessage(ChatColor.GREEN + "게임 시작! " + size + "x" + size + " 크기의 월드보더가 생성되었습니다!");
-                //Bukkit.broadcastMessage(ChatColor.AQUA + "Find the Stronghold centered at X: " + strongholdLoc.getBlockX() + ", Z: " + strongholdLoc.getBlockZ() + " in the Overworld!");
+                Bukkit.broadcast(Component.text("게임 시작! 크기 " + size + "x" + size + "의 월드보더가 생성되었습니다!", NamedTextColor.GREEN));
+                
+                // --- NEW: Teleport all players to a random, safe location ---
+                teleportAllPlayersRandomly(overworld);
             });
 
         }).exceptionally(ex -> {
-            player.sendMessage(ChatColor.DARK_RED + "필요한 구조물을 찾는 도중 예기치 못한 오류가 발생했습니다.");
+            player.sendMessage(ChatColor.DARK_RED + "[NextGen] > [NGenError] An unexpected error occurred while searching for structures.");
+            player.sendMessage(ChatColor.DARK_RED + "필수 구조물을 검색하는 도중 예기치 못한 오류가 발생했습니다.");
             ex.printStackTrace();
             return null;
         });
     }
 
+    private void teleportAllPlayersRandomly(World world) {
+        WorldBorder border = world.getWorldBorder();
+        Location center = border.getCenter();
+        double size = border.getSize();
+        double radius = size / 2.0;
+
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            // Using ThreadLocalRandom is better for multithreading contexts
+            double randomX = center.getX() + (ThreadLocalRandom.current().nextDouble() * size - radius);
+            double randomZ = center.getZ() + (ThreadLocalRandom.current().nextDouble() * size - radius);
+
+            // Find the highest solid block (ignoring leaves and glass) at this location
+            // This is a much safer way to find the ground
+            int y = world.getHighestBlockYAt((int) randomX, (int) randomZ, Heightmap.MOTION_BLOCKING_NO_LEAVES);
+
+            Location teleportLocation = new Location(world, randomX, y + 1.0, randomZ);
+
+            // Use Paper's async teleport for better performance 🪄
+            p.teleportAsync(teleportLocation);
+            p.sendMessage(ChatColor.AQUA + "모든 플레이어가 렌덤 위치로 텔레포트되었습니다!");
+        }
+    }
+    
+    // ... (The other handleAbort, handleReload, handleBorder, sendHelp, and onTabComplete methods are the same) ...
     private void handleAbort(Player player) {
         if (!plugin.isGameActive()) {
             player.sendMessage(ChatColor.RED + "중단할 게임이 없습니다.");
             return;
         }
         plugin.setGameActive(false);
-        // Reset borders in all worlds
         for (World world : Bukkit.getWorlds()) {
             world.getWorldBorder().reset();
         }
-        Bukkit.broadcastMessage(ChatColor.YELLOW + player.getName() + "이(가) 게임을 중단했습니다. 월드보더가 제거됩니다.");
+        Bukkit.broadcast(Component.text(player.getName() + "이(가) 게임을 중단하였습니다. 월드보더가 제거됩니다.", NamedTextColor.YELLOW));
     }
 
     private void handleReload(Player player) {
         player.sendMessage(ChatColor.GOLD + "서버를 새로고침합니다.");
-        // Using dispatchCommand is safer than Bukkit.reload()
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "reload confirm");
     }
 
@@ -152,7 +171,7 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             plugin.setBorderSize(size);
-            player.sendMessage(ChatColor.GREEN + "다음 게임의 월드보더 크기가 " + size + "x" + size + "으로 설정되었습니다.");
+            player.sendMessage(ChatColor.GREEN + "다음 게임에서 월드보더가 " + size + "x" + size + " 크기로 생성됩니다.");
         } catch (NumberFormatException e) {
             player.sendMessage(ChatColor.RED + "'" + sizeArg + "'은(는) 유효한 숫자가 아닙니다.");
         }
@@ -172,8 +191,8 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
             return Arrays.asList("start", "abort", "border", "reload");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("border")) {
-            return Arrays.asList("1000", "1500", "2000"); // Suggest some common sizes
+            return Arrays.asList("1000", "1500", "2000");
         }
-        return null; // No other suggestions
+        return null;
     }
 }
