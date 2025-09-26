@@ -6,6 +6,14 @@
 
 `<command>`:
   - `start` - 게임 시작
-  - `reload` - 문제 발생시 서버 새로고침
+  - `reload` - 서버 새로고침(문제 발생시 NextGeneration
+한정된 크기의 월드에서 가장 먼저 `[그다음 세대]` 발전 과제를 깨는 플레이어가 승리하는 플러그인
+
+## Usage
+`/nextgen <command>`
+
+`<command>`:
+  - `start` - 게임 시작
+  - `reload` - 서버 새로고침(문제 발생시)
   - `abort` - 게임 중단
-  - `border <n>` - 월드보더 크기 변경(`n×n`)
+  - `border <n>` - 월드보더 크기 변경
