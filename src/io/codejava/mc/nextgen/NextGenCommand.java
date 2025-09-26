@@ -2,9 +2,10 @@ package io.codejava.mc.nextgen;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.block.Biome;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Heightmap;
+import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -13,7 +14,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.generator.structure.Structure;
-import org.bukkit.structure.StructureType;
+import org.bukkit.generator.structure.StructureType;
 import org.bukkit.util.Vector;
 import org.bukkit.WorldBorder;
 
@@ -89,8 +90,13 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
             }
 
             Location strongholdLoc = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false);
-            Location fortressLoc = nether.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
-            Location warpedForestLoc = nether.locateNearestBiome(player.getLocation(), "minecraft:warped_forest", 5000, 1, 1);
+            //Location fortressLoc = nether.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
+            Location fortressLoc = null;
+            StructureSearchResult result = world.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
+            if (result != null) {
+                fortressLoc = result.getLocation();
+            }
+            Location warpedForestLoc = nether.locateNearestBiome(player.getLocation(), Biome.WARPED_FOREST, 5000, 1, 1);
             
             if (strongholdLoc == null || fortressLoc == null || warpedForestLoc == null) {
                 player.sendMessage(ChatColor.RED + "[NextGen] 필수 구조물을 찾지 못했거나 일부만 찾았습니다. 게임을 종료합니다.");
