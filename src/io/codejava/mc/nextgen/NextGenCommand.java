@@ -15,6 +15,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.generator.structure.Structure;
 import org.bukkit.generator.structure.StructureType;
+import org.bukkit.util.StructureSearchResult;
 import org.bukkit.util.Vector;
 import org.bukkit.WorldBorder;
 
@@ -92,11 +93,12 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
             Location strongholdLoc = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false);
             //Location fortressLoc = nether.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
             Location fortressLoc = null;
-            StructureSearchResult result = world.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
+            StructureSearchResult result = overworld.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
             if (result != null) {
-                fortressLoc = result.getLocation();
+                //fortressLoc = result.getLocation();
+                fortressLoc = result != null ? result.getLocation() : null;
             }
-            Location warpedForestLoc = nether.locateNearestBiome(player.getLocation(), Biome.WARPED_FOREST, 5000, 1, 1);
+            Location warpedForestLoc = nether.locateNearestBiome(player.getLocation(), 5000, 1, 1, Biome.WARPED_FOREST);
             
             if (strongholdLoc == null || fortressLoc == null || warpedForestLoc == null) {
                 player.sendMessage(ChatColor.RED + "[NextGen] 필수 구조물을 찾지 못했거나 일부만 찾았습니다. 게임을 종료합니다.");
@@ -141,7 +143,7 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
 
             // Find the highest solid block (ignoring leaves and glass) at this location
             // This is a much safer way to find the ground
-            int y = world.getHighestBlockYAt((int) randomX, (int) randomZ, Heightmap.MOTION_BLOCKING_NO_LEAVES);
+            int y = world.getHighestBlockYAt((int) randomX, (int) randomZ, HeightMap.MOTION_BLOCKING_NO_LEAVES);
 
             Location teleportLocation = new Location(world, randomX, y + 1.0, randomZ);
 
