@@ -1,11 +1,11 @@
 name: NextGen
 version: 1.0
-main: io.codejava.mc.nextgen.nextgen
+main: io.codejava.mc.nextgen.NextGen
 api-version: '1.21'
 author: CodeJava
 description: The player who picks up the dragon egg wins!
 commands:
   nextgen:
-    description: Main command for the NextGen.
+    description: Main command for NextGen.
     usage: /nextgen [start|reload|abort|border]
     permission: nextgen.admin
