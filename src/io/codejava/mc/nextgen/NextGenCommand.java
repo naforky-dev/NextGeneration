@@ -101,7 +101,7 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
             //Location fortressLoc = nether.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
             //Location fortressLoc = null;
             //StructureSearchResult result = nether.locateNearestStructure(player.getLocation(), Structure.FORTRESS, 5000, false);
-            Location result = nether.locateNearestStructure(player.getLocation(), Structure.FORTRESS, 5000, false).getLocation();
+            Location fortressLoc = nether.locateNearestStructure(player.getLocation(), Structure.FORTRESS, 5000, false).getLocation();
 
             /*if (result != null) {
                 //fortressLoc = result.getLocation();
@@ -123,10 +123,10 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
             Bukkit.getScheduler().runTask(plugin, () -> {
                 int size = plugin.getBorderSize();
                 
-                overworld.getWorldBorder().setCenter(stronghold);
+                overworld.getWorldBorder().setCenter(strongholdLoc);
                 overworld.getWorldBorder().setSize(size);
                 
-                Location netherCenter = fortressLoc.clone().add(warpedForest).multiply(0.5);
+                Location netherCenter = fortressLoc.clone().add(warpedForestLoc).multiply(0.5);
                 nether.getWorldBorder().setCenter(netherCenter);
                 nether.getWorldBorder().setSize(size);
 
