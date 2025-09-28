@@ -91,26 +91,29 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
                 return;
             }
 
-            StructureSearchResult strongholdLoc = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false);
+            //StructureSearchResult strongholdLoc = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false);
+            Location strongholdLoc = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false).getLocation();
             //Location stronghold = null;
-            if (strongholdLoc != null) {
+            /*if (strongholdLoc != null) {
                 //stronghold = strongholdLoc.getLocation();
                 Location stronghold = strongholdLoc != null ? strongholdLoc.getLocation() : null;
-            }
+            }*/
             //Location fortressLoc = nether.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
             //Location fortressLoc = null;
-            StructureSearchResult result = nether.locateNearestStructure(player.getLocation(), Structure.FORTRESS, 5000, false);
-            
-            if (result != null) {
+            //StructureSearchResult result = nether.locateNearestStructure(player.getLocation(), Structure.FORTRESS, 5000, false);
+            Location result = nether.locateNearestStructure(player.getLocation(), Structure.FORTRESS, 5000, false).getLocation();
+
+            /*if (result != null) {
                 //fortressLoc = result.getLocation();
                 Location fortressLoc = result != null ? result.getLocation() : null;
-            }
-            BiomeSearchResult warpedForestLoc = nether.locateNearestBiome(player.getLocation(), 5000, 1, 1, Biome.WARPED_FOREST);
+            }*/
+            //BiomeSearchResult warpedForestLoc = nether.locateNearestBiome(player.getLocation(), 5000, 1, 1, Biome.WARPED_FOREST);
+            Location warpedForestLoc = nether.locateNearestBiome(player.getLocation(), 5000, 1, 1, Biome.WARPED_FOREST).getLocation();
             //Location warpedForest = null;
-            if (warpedForestLoc != null) {
+            /*if (warpedForestLoc != null) {
                 //warpedForest = warpedForestLoc.getLocation();
                 Location warpedForest = warpedForestLoc != null ? warpedForestLoc.getLocation() : null;
-            }
+            }*/
             
             if (strongholdLoc == null || fortressLoc == null || warpedForestLoc == null) {
                 player.sendMessage(ChatColor.RED + "[NextGen] 필수 구조물을 찾지 못했거나 일부만 찾았습니다. 게임을 종료합니다.");
