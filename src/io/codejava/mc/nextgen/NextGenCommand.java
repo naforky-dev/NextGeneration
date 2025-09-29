@@ -147,7 +147,8 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
             ex.printStackTrace();
             // Test: use ex.printStackTrace inside sendMessage and see if it works.
             // For easy debugging when programming updates
-            player.sendMessage(ex.printStackTrace());
+            //player.sendMessage(ex.printStackTrace());
+            // Yeah, it probably doesn't work.
 
             return null;
         });
