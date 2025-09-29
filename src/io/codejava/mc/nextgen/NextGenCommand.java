@@ -115,7 +115,11 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
                 Location warpedForest = warpedForestLoc != null ? warpedForestLoc.getLocation() : null;
             }*/
             
-            if (strongholdLoc == null || fortressLoc == null || warpedForestLoc == null) {
+            /*if (strongholdLoc == null || fortressLoc == null || warpedForestLoc == null) {
+                player.sendMessage(ChatColor.RED + "[NextGen] 필수 구조물을 찾지 못했거나 일부만 찾았습니다. 게임을 종료합니다.");
+                return;
+            }*/ // Remove fortressLoc from if statement(edit below) since it seems to be causing errors.
+            if (strongholdLoc == null || warpedForestLoc == null) {
                 player.sendMessage(ChatColor.RED + "[NextGen] 필수 구조물을 찾지 못했거나 일부만 찾았습니다. 게임을 종료합니다.");
                 return;
             }
@@ -141,6 +145,10 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(ChatColor.DARK_RED + "[NextGen] > [NGenError] An unexpected error occurred while searching for structures.");
             player.sendMessage(ChatColor.DARK_RED + "필수 구조물을 검색하는 도중 예기치 못한 오류가 발생했습니다.");
             ex.printStackTrace();
+            // Test: use ex.printStackTrace inside sendMessage and see if it works.
+            // For easy debugging when programming updates
+            player.sendMessage(ex.printStackTrace());
+
             return null;
         });
     }
