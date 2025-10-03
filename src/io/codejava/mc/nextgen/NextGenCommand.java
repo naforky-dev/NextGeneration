@@ -76,83 +76,67 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
 
     private void handleStart(Player player) {
         if (plugin.isGameActive()) {
-            player.sendMessage(ChatColor.RED + "게임이 이미 실행중입니다!");
+            player.sendMessage(ChatColor.RED + "게임이 이미 실행 중입니다!");
             return;
         }
 
-        player.sendMessage(ChatColor.YELLOW + "[NextGen] 게임을 시작합니다! 필수 구조물을 검색 중...");
+        player.sendMessage(ChatColor.YELLOW + "게임을 시작합니다. 필요한 구조물 검색 중...");
+        player.sendMessage(ChatColor.YELLOW + "구조물 검색은 다소 시간이 걸릴 수 있습니다.");
 
-        CompletableFuture.runAsync(() -> {
-            World overworld = Bukkit.getWorld("world");
-            World nether = Bukkit.getWorld("world_nether");
+        World overworld = Bukkit.getWorld("world");
+        World nether = Bukkit.getWorld("world_nether");
 
-            if (overworld == null || nether == null) {
-                player.sendMessage(ChatColor.RED + "[NextGen] 오류: 다음 월드를 찾지 못했습니다. (world, world_nether)");
+        if (overworld == null || nether == null) {
+            player.sendMessage(ChatColor.RED + "오류: (world, world_nether)를 찾지 못했습니다.");
+            return;
+        }
+
+        // --- NEW: Use Paper's built-in async methods ---
+        CompletableFuture<Location> findStronghold = overworld.locateNearestStructureAsync(player.getLocation(), Structure.STRONGHOLD, 10000, false).getLocation();
+        CompletableFuture<Location> findFortress = nether.locateNearestStructureAsync(player.getLocation(), Structure.FORTRESS, 5000, false).getLocation();
+        CompletableFuture<Location> findWarpedForest = nether.locateNearestBiomeAsync(player.getLocation(), Biome.WARPED_FOREST, 5000, 1, 1).getLocation();
+
+        // This block runs only after ALL three searches are complete
+        CompletableFuture.allOf(findStronghold, findFortress, findWarpedForest).thenAccept(v -> {
+            // .join() gets the result from the completed future
+            final Location strongholdLoc = findStronghold.join();
+            final Location fortressLoc = findFortress.join();
+            final Location warpedForestLoc = findWarpedForest.join();
+
+            // Check if any of the searches failed
+            if (strongholdLoc == null || fortressLoc == null || warpedForestLoc == null) {
+                player.sendMessage(ChatColor.RED + "[NextGen] > [NGenError] Could not find all required structures/biomes. Please try again or use a different seed. Aborting.");
+                player.sendMessage(ChatColor.RED + "게임에 필요한 구조물을 찾지 못했습니다. 다른 시드를 사용하거나 다른 좌표에서 게임을 다시 실행해주세요. 게임을 종료합니다.");
                 return;
             }
 
-            //StructureSearchResult strongholdLoc = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false);
-            Location strongholdLoc = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false).getLocation();
-            //Location stronghold = null;
-            /*if (strongholdLoc != null) {
-                //stronghold = strongholdLoc.getLocation();
-                Location stronghold = strongholdLoc != null ? strongholdLoc.getLocation() : null;
-            }*/
-            //Location fortressLoc = nether.locateNearestStructure(player.getLocation(), Structure.NETHER_FORTRESS, 5000, false);
-            //Location fortressLoc = null;
-            //StructureSearchResult result = nether.locateNearestStructure(player.getLocation(), Structure.FORTRESS, 5000, false);
-            Location fortressLoc = nether.locateNearestStructure(player.getLocation(), Structure.FORTRESS, 5000, false).getLocation();
-
-            /*if (result != null) {
-                //fortressLoc = result.getLocation();
-                Location fortressLoc = result != null ? result.getLocation() : null;
-            }*/
-            //BiomeSearchResult warpedForestLoc = nether.locateNearestBiome(player.getLocation(), 5000, 1, 1, Biome.WARPED_FOREST);
-            Location warpedForestLoc = nether.locateNearestBiome(player.getLocation(), 5000, 1, 1, Biome.WARPED_FOREST).getLocation();
-            //Location warpedForest = null;
-            /*if (warpedForestLoc != null) {
-                //warpedForest = warpedForestLoc.getLocation();
-                Location warpedForest = warpedForestLoc != null ? warpedForestLoc.getLocation() : null;
-            }*/
-            
-            /*if (strongholdLoc == null || fortressLoc == null || warpedForestLoc == null) {
-                player.sendMessage(ChatColor.RED + "[NextGen] 필수 구조물을 찾지 못했거나 일부만 찾았습니다. 게임을 종료합니다.");
-                return;
-            }*/ // Remove fortressLoc from if statement(edit below) since it seems to be causing errors.
-            if (strongholdLoc == null || warpedForestLoc == null) {
-                player.sendMessage(ChatColor.RED + "[NextGen] 필수 구조물을 찾지 못했거나 일부만 찾았습니다. 게임을 종료합니다.");
-                return;
-            }
-
+            // Now that we have the locations, schedule the final logic to run on the main server thread
             Bukkit.getScheduler().runTask(plugin, () -> {
                 int size = plugin.getBorderSize();
-                
+
                 overworld.getWorldBorder().setCenter(strongholdLoc);
                 overworld.getWorldBorder().setSize(size);
-                
+
                 Location netherCenter = fortressLoc.clone().add(warpedForestLoc).multiply(0.5);
                 nether.getWorldBorder().setCenter(netherCenter);
                 nether.getWorldBorder().setSize(size);
 
                 plugin.setGameActive(true);
-                Bukkit.broadcast(Component.text("게임 시작! 크기 " + size + "x" + size + "의 월드보더가 생성되었습니다!", NamedTextColor.GREEN));
-                
-                // --- NEW: Teleport all players to a random, safe location ---
+                Bukkit.broadcast(Component.text("게임이 시작되었습니다! " + size + "x" + size + " 크기의 월드보더가 생성되었습니다.", NamedTextColor.GREEN));
+
                 teleportAllPlayersRandomly(overworld);
             });
 
         }).exceptionally(ex -> {
+            // This runs if any of the async tasks threw an error
             player.sendMessage(ChatColor.DARK_RED + "[NextGen] > [NGenError] An unexpected error occurred while searching for structures.");
-            player.sendMessage(ChatColor.DARK_RED + "필수 구조물을 검색하는 도중 예기치 못한 오류가 발생했습니다.");
+            player.sendMessage(ChatColor.DARK_RED + "구조물 검색 도중 예기치 못한 오류가 발생했습니다.");
+            player.sendMessage(ChatColor.DARK_RED + "서버 로그를 확인해주세요.");
             ex.printStackTrace();
-            // Test: use ex.printStackTrace inside sendMessage and see if it works.
-            // For easy debugging when programming updates
-            //player.sendMessage(ex.printStackTrace());
-            // Yeah, it probably doesn't work.
-
             return null;
         });
     }
+    
 
     private void teleportAllPlayersRandomly(World world) {
         WorldBorder border = world.getWorldBorder();
