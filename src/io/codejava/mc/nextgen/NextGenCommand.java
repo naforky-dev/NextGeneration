@@ -92,9 +92,9 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
         }
 
         // --- NEW: Use Paper's built-in async methods ---
-        CompletableFuture<Location> findStronghold = overworld.locateNearestStructureAsync(player.getLocation(), Structure.STRONGHOLD, 10000, false).getLocation();
-        CompletableFuture<Location> findFortress = nether.locateNearestStructureAsync(player.getLocation(), Structure.FORTRESS, 5000, false).getLocation();
-        CompletableFuture<Location> findWarpedForest = nether.locateNearestBiomeAsync(player.getLocation(), Biome.WARPED_FOREST, 5000, 1, 1).getLocation();
+        CompletableFuture<Location> findStronghold = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false).getLocation();
+        CompletableFuture<Location> findFortress = nether.locateNearestStructure(player.getLocation(), Structure.FORTRESS, 5000, false).getLocation();
+        CompletableFuture<Location> findWarpedForest = nether.locateNearestBiome(player.getLocation(), Biome.WARPED_FOREST, 5000, 1, 1).getLocation();
 
         // This block runs only after ALL three searches are complete
         CompletableFuture.allOf(findStronghold, findFortress, findWarpedForest).thenAccept(v -> {
