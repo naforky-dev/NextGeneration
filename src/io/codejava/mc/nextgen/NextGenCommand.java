@@ -135,7 +135,7 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
 
             // Find the highest solid block (ignoring leaves and glass) at this location
             // This is a much safer way to find the ground
-            int y = world.getHighestBlockYAt((int) randomX, (int) randomZ, HeightMap.MOTION_OCKING_NO_LEAVES);
+            int y = world.getHighestBlockYAt((int) randomX, (int) randomZ, HeightMap.MOTION_BLOCKING_NO_LEAVES);
 
             Location teleportLocation = new Location(world, randomX, y + 1.0, randomZ);
 
