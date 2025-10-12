@@ -135,20 +135,20 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
 
             // Find the highest solid block (ignoring leaves and glass) at this location
             // This is a much safer way to find the ground
-            int y = world.getHighestBlockYAt((int) randomX, (int) randomZ, HeightMap.MOTION_BLOCKING_NO_LEAVES);
+            int y = world.getHighestBlockYAt((int) randomX, (int) randomZ, HeightMap.MOTION_OCKING_NO_LEAVES);
 
             Location teleportLocation = new Location(world, randomX, y + 1.0, randomZ);
 
             // Use Paper's async teleport for better performance 🪄
             p.teleportAsync(teleportLocation);
-            p.sendMessage(ChatColor.AQUA + "모든 플레이어가 렌덤 위치로 텔레포트되었습니다!");
+            p.sendMessage(Component.text("모든 플레이어가 렌덤 위치로 텔레포트되었습니다!", NamedTextColor.AQUA));
         }
     }
     
     // ... (The other handleAbort, handleReload, handleBorder, sendHelp, and onTabComplete methods are the same) ...
     private void handleAbort(Player player) {
         if (!plugin.isGameActive()) {
-            player.sendMessage(ChatColor.RED + "중단할 게임이 없습니다.");
+            player.sendMessage(Component.text("중단할 게임이 없습니다.", NamedTextColor.RED));
             return;
         }
         plugin.setGameActive(false);
@@ -159,7 +159,7 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
     }
 
     private void handleReload(Player player) {
-        player.sendMessage(ChatColor.GOLD + "서버를 새로고침합니다.");
+    player.sendMessage(Component.text("서버를 새로고침합니다.", NamedTextColor.GOLD));
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "reload confirm");
     }
 
