@@ -1,5 +1,5 @@
 name: NextGen
-version: 1.4
+version: 1.4-patch-makeitwork
 main: io.codejava.mc.nextgen.NextGen
 api-version: '1.21'
 author: CodeJava
