@@ -13,16 +13,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.generator.structure.Structure;
-import org.bukkit.generator.structure.StructureType;
 import org.bukkit.util.StructureSearchResult;
-import org.bukkit.util.BiomeSearchResult;
-import org.bukkit.util.Vector;
 import org.bukkit.WorldBorder;
 
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class NextGenCommand implements CommandExecutor, TabCompleter {
@@ -90,21 +86,30 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        // PaperMC 1.21.8: Use async methods and extract Location from result
-        // 구조물/바이옴 탐색을 별도 스레드에서 실행
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            StructureSearchResult strongholdResult = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false);
+        // 1. Stronghold 탐색 (즉시)
+        StructureSearchResult strongholdResult = overworld.locateNearestStructure(player.getLocation(), Structure.STRONGHOLD, 10000, false);
+        final Location strongholdLoc = (strongholdResult != null) ? strongholdResult.getLocation() : null;
+        if (strongholdLoc == null) {
+            player.sendMessage(Component.text("[NextGen] > [NGenError] Stronghold를 찾지 못했습니다.", NamedTextColor.RED));
+            return;
+        }
+        player.sendMessage(Component.text("Stronghold 위치를 찾았습니다. 5초 후 다음 구조물 검색을 시작합니다...", NamedTextColor.YELLOW));
+
+        // 2. Fortress 탐색 (5초 후)
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
             StructureSearchResult fortressResult = nether.locateNearestStructure(player.getLocation(), Structure.FORTRESS, 5000, false);
-
-            Location warpedForestLoc = nether.locateNearestBiome(player.getLocation(), Biome.WARPED_FOREST, 5000, 1);
-
-            final Location strongholdLoc = (strongholdResult != null) ? strongholdResult.getLocation() : null;
             final Location fortressLoc = (fortressResult != null) ? fortressResult.getLocation() : null;
+            if (fortressLoc == null) {
+                player.sendMessage(Component.text("[NextGen] > [NGenError] Fortress를 찾지 못했습니다.", NamedTextColor.RED));
+                return;
+            }
+            player.sendMessage(Component.text("Fortress 위치를 찾았습니다. 5초 후 바이옴 검색을 시작합니다...", NamedTextColor.YELLOW));
 
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if (strongholdLoc == null || fortressLoc == null || warpedForestLoc == null) {
-                    player.sendMessage(Component.text("[NextGen] > [NGenError] Could not find all required structures/biomes. Please try again or use a different seed. Aborting.", NamedTextColor.RED));
-                    player.sendMessage(Component.text("게임에 필요한 구조물을 찾지 못했습니다. 다른 시드를 사용하거나 다른 좌표에서 게임을 다시 실행해주세요. 게임을 종료합니다.", NamedTextColor.RED));
+            // 3. Warped Forest 바이옴 탐색 (5초 후)
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                Location warpedForestLoc = nether.locateNearestBiome(player.getLocation(), Biome.WARPED_FOREST, 5000, 1);
+                if (warpedForestLoc == null) {
+                    player.sendMessage(Component.text("[NextGen] > [NGenError] Warped Forest 바이옴을 찾지 못했습니다.", NamedTextColor.RED));
                     return;
                 }
 
@@ -117,8 +122,8 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
                 plugin.setGameActive(true);
                 Bukkit.broadcast(Component.text("게임이 시작되었습니다! " + size + "x" + size + " 크기의 월드보더가 생성되었습니다.", NamedTextColor.GREEN));
                 teleportAllPlayersRandomly(overworld);
-            });
-        });
+            }, 100L); // 5초(100틱) 후
+        }, 100L); // 5초(100틱) 후
     }
     
 
