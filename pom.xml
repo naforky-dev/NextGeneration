@@ -5,7 +5,7 @@
 
     <groupId>io.codejava.mc</groupId>
     <artifactId>NextGen</artifactId>
-    <version>1.4-patch-makeitwork</version>
+    <version>1.0</version>
     <packaging>jar</packaging>
 
     <properties>

@@ -93,7 +93,7 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(Component.text("[NextGen] > [NGenError] Stronghold를 찾지 못했습니다.", NamedTextColor.RED));
             return;
         }
-        player.sendMessage(Component.text("Stronghold 위치를 찾았습니다. 5초 후 다음 구조물 검색을 시작합니다...", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("엔드 유적 위치를 찾았습니다. 5초 후 다음 구조물 검색을 시작합니다...", NamedTextColor.YELLOW));
 
         // 2. Fortress 탐색 (5초 후)
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -103,13 +103,13 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(Component.text("[NextGen] > [NGenError] Fortress를 찾지 못했습니다.", NamedTextColor.RED));
                 return;
             }
-            player.sendMessage(Component.text("Fortress 위치를 찾았습니다. 5초 후 바이옴 검색을 시작합니다...", NamedTextColor.YELLOW));
+            player.sendMessage(Component.text("네더 포트리스 위치를 찾았습니다. 5초 후 바이옴 검색을 시작합니다...", NamedTextColor.YELLOW));
 
             // 3. Warped Forest 바이옴 탐색 (5초 후)
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 Location warpedForestLoc = nether.locateNearestBiome(player.getLocation(), Biome.WARPED_FOREST, 5000, 1);
                 if (warpedForestLoc == null) {
-                    player.sendMessage(Component.text("[NextGen] > [NGenError] Warped Forest 바이옴을 찾지 못했습니다.", NamedTextColor.RED));
+                    player.sendMessage(Component.text("[NextGen] > [NGenError] 뒤틀린 숲 바이옴을 찾지 못했습니다.", NamedTextColor.RED));
                     return;
                 }
 
