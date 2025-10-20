@@ -19,6 +19,34 @@ import java.time.Duration;
 import java.util.Objects;
 
 public class NextGen extends JavaPlugin implements Listener {
+
+    // 문자열을 Duration으로 변환 (NextGenCommand와 동일)
+    private Duration parseDuration(String input) {
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(?:(\\d+)h)?(?:(\\d+)m)?(?:(\\d+)s)?");
+        java.util.regex.Matcher matcher = pattern.matcher(input);
+        if (matcher.matches()) {
+            int hours = matcher.group(1) != null ? Integer.parseInt(matcher.group(1)) : 0;
+            int minutes = matcher.group(2) != null ? Integer.parseInt(matcher.group(2)) : 0;
+            int seconds = matcher.group(3) != null ? Integer.parseInt(matcher.group(3)) : 0;
+            return Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds);
+        }
+        return null;
+    }
+
+    // Duration을 한글로 포맷 (NextGenCommand와 동일)
+    private String formatDuration(Duration duration) {
+        long totalSeconds = duration.getSeconds();
+        long hours = totalSeconds / 3600;
+        long minutes = (totalSeconds % 3600) / 60;
+        long seconds = totalSeconds % 60;
+        if (hours > 0) {
+            return hours + "시간 " + minutes + "분";
+        } else if (minutes > 0) {
+            return minutes + "분 " + seconds + "초";
+        } else {
+            return seconds + "초";
+        }
+    }
     // 엔드 활성화 타이머 상태 공유용
     public boolean isEndActivated() {
         if (getCommandExecutor() instanceof NextGenCommand cmd) {

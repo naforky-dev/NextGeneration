@@ -155,7 +155,13 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
     }
 
     private void handleShowTimer(Player player, String value) {
-        boolean show = Boolean.parseBoolean(value);
+        boolean show;
+        if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+            show = Boolean.parseBoolean(value);
+        } else {
+            player.sendMessage(Component.text("true 또는 false만 입력 가능합니다.", NamedTextColor.RED));
+            return;
+        }
         playerShowTimer.put(player, show);
         if (show) {
             showBossBar(player);
