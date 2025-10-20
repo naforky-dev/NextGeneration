@@ -9,3 +9,5 @@
   - `reload` - 서버 새로고침(문제 발생시)
   - `abort` - 게임 중단
   - `border <n>` - 월드보더 크기 변경
+  - `showtimer <true|false>` - 엔드 활성화 타이머
+  - `endactivationtime <format>` - 엔드 활성화 시간

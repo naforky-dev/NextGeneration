@@ -21,10 +21,65 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.bukkit.boss.BossBar;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+
 public class NextGenCommand implements CommandExecutor, TabCompleter {
 
-    // The main class is now NextGen
+
     private final NextGen plugin;
+    private boolean showTimer = false;
+    private Duration endActivationDuration = Duration.ofHours(2);
+    private Instant endActivationStart = null;
+    private BossBar bossBar = null;
+    private boolean endActivated = false;
+    public boolean isEndActivated() {
+        return endActivated;
+    }
+
+    public Duration getEndActivationLeft() {
+        if (endActivationStart == null) return Duration.ZERO;
+        Duration left = Duration.between(Instant.now(), endActivationStart.plus(endActivationDuration));
+        return left.isNegative() ? Duration.ZERO : left;
+    }
+
+    public void startEndActivationTimer() {
+        endActivationStart = Instant.now();
+        endActivated = false;
+        Bukkit.getScheduler().runTaskTimer(plugin, this::checkEndActivationTimer, 20L, 20L);
+    }
+
+    private boolean thirtyWarned = false;
+    private boolean tenWarned = false;
+
+    private void checkEndActivationTimer() {
+        if (endActivationStart == null || endActivated) return;
+        Duration left = getEndActivationLeft();
+        long seconds = left.getSeconds();
+        updateBossBar();
+        if (seconds <= 0) {
+            endActivated = true;
+            Bukkit.broadcast(Component.text("엔드가 활성화되었습니다!", NamedTextColor.LIGHT_PURPLE));
+            if (bossBar != null) bossBar.setVisible(false);
+            return;
+        }
+        if (!thirtyWarned && seconds <= 1800) {
+            Bukkit.broadcast(Component.text("엔드 활성화까지 30분 남았습니다!", NamedTextColor.YELLOW));
+            thirtyWarned = true;
+        }
+        if (!tenWarned && seconds <= 600) {
+            Bukkit.broadcast(Component.text("엔드 활성화까지 10분 남았습니다!", NamedTextColor.RED));
+            tenWarned = true;
+        }
+    }
+    private final Map<Player, Boolean> playerShowTimer = new HashMap<>();
 
     public NextGenCommand(NextGen plugin) {
         this.plugin = plugin;
@@ -32,7 +87,6 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        // ... (The rest of the onCommand logic is the same as before) ...
         if (!(sender instanceof Player player)) {
             sender.sendMessage("이 명령어는 플레이어만 사용 가능합니다.");
             return true;
@@ -62,11 +116,125 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
                 }
                 handleBorder(player, args[1]);
                 break;
+            case "showtimer":
+                if (args.length < 2) {
+                    player.sendMessage(Component.text("Usage: /nextgen showtimer <true|false>", NamedTextColor.RED));
+                    return true;
+                }
+                handleShowTimer(player, args[1]);
+                break;
+            case "endactivationtime":
+                if (args.length < 2) {
+                    player.sendMessage(Component.text("Usage: /nextgen endactivationtime <duration>", NamedTextColor.RED));
+                    return true;
+                }
+                handleEndActivationTime(player, args[1]);
+                break;
+            case "time":
+                handleTime(player);
+                break;
             default:
                 sendHelp(player);
                 break;
         }
         return true;
+    }
+
+    private void handleTime(Player player) {
+        if (endActivationStart == null) {
+            player.sendMessage(Component.text("엔드 활성화 타이머가 시작되지 않았습니다.", NamedTextColor.RED));
+            return;
+        }
+        Duration left = Duration.between(Instant.now(), endActivationStart.plus(endActivationDuration));
+        if (left.isNegative() || left.isZero()) {
+            player.sendMessage(Component.text("엔드가 이미 활성화되었습니다!", NamedTextColor.GREEN));
+            return;
+        }
+        String msg = "엔드 활성화까지 " + formatDuration(left) + " 남았습니다.";
+        player.sendMessage(Component.text(msg, NamedTextColor.YELLOW));
+    }
+
+    private void handleShowTimer(Player player, String value) {
+        boolean show = Boolean.parseBoolean(value);
+        playerShowTimer.put(player, show);
+        if (show) {
+            showBossBar(player);
+            player.sendMessage(Component.text("타이머가 보스바에 표시됩니다.", NamedTextColor.YELLOW));
+        } else {
+            hideBossBar(player);
+            player.sendMessage(Component.text("타이머 보스바가 숨겨집니다.", NamedTextColor.YELLOW));
+        }
+    }
+
+    private void handleEndActivationTime(Player player, String durationStr) {
+        Duration duration = parseDuration(durationStr);
+        if (duration == null || duration.isZero() || duration.isNegative()) {
+            player.sendMessage(Component.text("올바른 시간 형식이 아닙니다. 예시: 2h10m10s", NamedTextColor.RED));
+            return;
+        }
+        endActivationDuration = duration;
+        player.sendMessage(Component.text("엔드 활성화까지의 시간이 " + formatDuration(duration) + "로 설정되었습니다.", NamedTextColor.GREEN));
+    }
+
+    private Duration parseDuration(String input) {
+        Pattern pattern = Pattern.compile("(?:(\\d+)h)?(?:(\\d+)m)?(?:(\\d+)s)?");
+        Matcher matcher = pattern.matcher(input);
+        if (matcher.matches()) {
+            int hours = matcher.group(1) != null ? Integer.parseInt(matcher.group(1)) : 0;
+            int minutes = matcher.group(2) != null ? Integer.parseInt(matcher.group(2)) : 0;
+            int seconds = matcher.group(3) != null ? Integer.parseInt(matcher.group(3)) : 0;
+            return Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds);
+        }
+        return null;
+    }
+
+    private String formatDuration(Duration duration) {
+        long totalSeconds = duration.getSeconds();
+        long hours = totalSeconds / 3600;
+        long minutes = (totalSeconds % 3600) / 60;
+        long seconds = totalSeconds % 60;
+        if (hours > 0) {
+            return hours + "시간 " + minutes + "분";
+        } else if (minutes > 0) {
+            return minutes + "분 " + seconds + "초";
+        } else {
+            return seconds + "초";
+        }
+    }
+
+    private void showBossBar(Player player) {
+        if (bossBar == null) {
+            bossBar = Bukkit.createBossBar("엔드 활성화까지...", BarColor.YELLOW, BarStyle.SOLID);
+        }
+        bossBar.addPlayer(player);
+        updateBossBar();
+    }
+
+    private void hideBossBar(Player player) {
+        if (bossBar != null) {
+            bossBar.removePlayer(player);
+        }
+    }
+
+    private void updateBossBar() {
+        if (bossBar == null || endActivationStart == null) return;
+        Duration left = Duration.between(Instant.now(), endActivationStart.plus(endActivationDuration));
+        if (left.isNegative() || left.isZero()) {
+            bossBar.setVisible(false);
+            return;
+        }
+        String title;
+        long hours = left.toHours();
+        long minutes = (left.toMinutes() % 60);
+        long seconds = (left.getSeconds() % 60);
+        if (hours > 0) {
+            title = "엔드 활성화까지 " + hours + "시간 " + minutes + "분";
+        } else {
+            title = "엔드 활성화까지 " + minutes + "분 " + seconds + "초";
+        }
+        bossBar.setTitle(title);
+        bossBar.setProgress(Math.max(0.0, Math.min(1.0, (double)left.getSeconds() / endActivationDuration.getSeconds())));
+        bossBar.setVisible(true);
     }
 
     private void handleStart(Player player) {
@@ -75,7 +243,8 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        player.sendMessage(Component.text("게임을 시작합니다. 필요한 구조물 검색 중...", NamedTextColor.YELLOW));
+    player.sendMessage(Component.text("게임을 시작합니다. 필요한 구조물 검색 중...", NamedTextColor.YELLOW));
+    startEndActivationTimer();
         player.sendMessage(Component.text("구조물 검색은 다소 시간이 걸릴 수 있습니다.", NamedTextColor.YELLOW));
 
         World overworld = Bukkit.getWorld("world");
@@ -183,20 +352,28 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(Player player) {
-    player.sendMessage(Component.text("[NextGen] v1.0-java", NamedTextColor.GOLD));
+    player.sendMessage(Component.text("[NextGen] v1.1-java", NamedTextColor.GOLD));
     player.sendMessage(Component.text("/nextgen start - 게임 시작", NamedTextColor.YELLOW));
     player.sendMessage(Component.text("/nextgen abort - 게임 중단", NamedTextColor.YELLOW));
     player.sendMessage(Component.text("/nextgen border <500-5000> - 월드보더 크기 변경", NamedTextColor.YELLOW));
     player.sendMessage(Component.text("/nextgen reload - 서버 새로고침", NamedTextColor.YELLOW));
+    player.sendMessage(Component.text("/nextgen showtimer - 엔드 활성화 타이머", NamedTextColor.YELLOW));
+    player.sendMessage(Component.text("/nextgen endactivationtime - 엔드 활성화 시간", NamedTextColor.YELLOW));
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("start", "abort", "border", "reload");
+            return Arrays.asList("start", "abort", "border", "reload", "showtimer", "endactivationtime");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("border")) {
             return Arrays.asList("1000", "1500", "2000");
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("showtimer")) {
+            return Arrays.asList(true, false);
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("endactivationtime")) {
+            return Arrays.asList("2h", "1h30m", "45m", "10m");
         }
         return null;
     }

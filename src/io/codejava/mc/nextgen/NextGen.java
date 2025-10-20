@@ -9,12 +9,62 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerAdvancementDoneEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.block.Action;
+import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.time.Duration;
 import java.util.Objects;
 
 public class NextGen extends JavaPlugin implements Listener {
+    // 엔드 활성화 타이머 상태 공유용
+    public boolean isEndActivated() {
+        if (getCommandExecutor() instanceof NextGenCommand cmd) {
+            return cmd.isEndActivated();
+        }
+        return false;
+    }
+
+    public Duration getEndActivationLeft() {
+        if (getCommandExecutor() instanceof NextGenCommand cmd) {
+            return cmd.getEndActivationLeft();
+        }
+        return Duration.ZERO;
+    }
+
+    private NextGenCommand getCommandExecutor() {
+        return (NextGenCommand) Objects.requireNonNull(getCommand("nextgen")).getExecutor();
+    }
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (isEndActivated()) return;
+        if (!isGameActive()) return;
+        Player player = event.getPlayer();
+        Action action = event.getAction();
+        if (action == Action.RIGHT_CLICK_BLOCK) {
+            if (event.getClickedBlock() != null && event.getClickedBlock().getType() == Material.END_PORTAL_FRAME) {
+                event.setCancelled(true);
+                Duration left = getEndActivationLeft();
+                String msg = "엔드가 비활성화 상태입니다. 활성화까지 " + formatDuration(left) + " 남았습니다.";
+                player.sendMessage(Component.text(msg, NamedTextColor.RED));
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+        if (isEndActivated()) return;
+        if (!isGameActive()) return;
+        Player player = event.getPlayer();
+        if (player.getInventory().getItemInMainHand().getType() == Material.ENDER_PEARL) {
+            event.setCancelled(true);
+            Duration left = getEndActivationLeft();
+            String msg = "엔드가 비활성화 상태입니다. 활성화까지 " + formatDuration(left) + " 남았습니다.";
+            player.sendMessage(Component.text(msg, NamedTextColor.RED));
+        }
+    }
 
     private boolean gameActive = false;
     private int borderSize = 1000; // Default border size
@@ -30,7 +80,7 @@ public class NextGen extends JavaPlugin implements Listener {
         Objects.requireNonNull(getCommand("nextgen")).setExecutor(commandExecutor);
         Objects.requireNonNull(getCommand("nextgen")).setTabCompleter(commandExecutor);
 
-        getLogger().info("[NextGen] v1.0-java");
+        getLogger().info("[NextGen] v1.1-java");
     }
 
     @EventHandler
