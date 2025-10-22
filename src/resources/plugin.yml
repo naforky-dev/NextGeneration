@@ -7,8 +7,8 @@ description: The player who picks up the dragon egg wins!
 commands:
   nextgen:
     description: Main command for NextGen.
-    usage: /nextgen [start|reload|abort|border|showtimer|endactivationtime]
+    usage: /nextgen [start|reload|abort|border|time|showtimer|endactivationtime]
     permission: nextgen.admin
-  time:
+  t:
     description: Timer command for NextGen.
-    usage: /time
+    usage: /t

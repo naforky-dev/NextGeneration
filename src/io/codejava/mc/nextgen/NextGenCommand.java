@@ -62,8 +62,8 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
     private void checkEndActivationTimer() {
         if (endActivationStart == null || endActivated) return;
         Duration left = getEndActivationLeft();
-        long seconds = left.getSeconds();
         updateBossBar();
+        long seconds = left.getSeconds();
         if (seconds <= 0) {
             endActivated = true;
             Bukkit.broadcast(Component.text("엔드가 활성화되었습니다!", NamedTextColor.LIGHT_PURPLE));
@@ -89,6 +89,12 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage("이 명령어는 플레이어만 사용 가능합니다.");
+            return true;
+        }
+
+        // If this command was invoked as the independent '/t' command, show time immediately
+        if (command.getName().equalsIgnoreCase("t")) {
+            handleTime(player);
             return true;
         }
 
@@ -370,13 +376,13 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("start", "abort", "border", "reload", "showtimer", "endactivationtime");
+            return Arrays.asList("start", "abort", "border", "reload", "showtimer", "endactivationtime", "t");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("border")) {
             return Arrays.asList("1000", "1500", "2000");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("showtimer")) {
-            return Arrays.asList(true, false);
+            return Arrays.asList("true", "false");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("endactivationtime")) {
             return Arrays.asList("2h", "1h30m", "45m", "10m");

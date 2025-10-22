@@ -107,6 +107,11 @@ public class NextGen extends JavaPlugin implements Listener {
         NextGenCommand commandExecutor = new NextGenCommand(this);
         Objects.requireNonNull(getCommand("nextgen")).setExecutor(commandExecutor);
         Objects.requireNonNull(getCommand("nextgen")).setTabCompleter(commandExecutor);
+        // Register '/t' as an independent command handled by the same executor
+        if (getCommand("t") != null) {
+            Objects.requireNonNull(getCommand("t")).setExecutor(commandExecutor);
+            Objects.requireNonNull(getCommand("t")).setTabCompleter(commandExecutor);
+        }
 
         getLogger().info("[NextGen] v1.1-java");
     }
