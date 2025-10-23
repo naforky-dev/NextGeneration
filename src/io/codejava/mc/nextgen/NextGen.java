@@ -18,7 +18,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.time.Duration;
 import java.util.Objects;
 
+
 public class NextGen extends JavaPlugin implements Listener {
+    // portaldeath 옵션 상태
+    private boolean portalDeathEnabled = true;
+
+    public boolean isPortalDeathEnabled() {
+        return portalDeathEnabled;
+    }
+
+    public void setPortalDeathEnabled(boolean enabled) {
+        this.portalDeathEnabled = enabled;
+    }
 
     // 문자열을 Duration으로 변환 (NextGenCommand와 동일)
     private Duration parseDuration(String input) {
@@ -67,17 +78,28 @@ public class NextGen extends JavaPlugin implements Listener {
     }
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (isEndActivated()) return;
+        // 엔드 포탈 프레임 상호작용 차단 제거: 이제 플레이어가 정상적으로 눈/진주를 넣을 수 있음
+    }
+
+    @EventHandler
+    public void onPlayerPortal(org.bukkit.event.player.PlayerPortalEvent event) {
+        if (event.getTo() == null) return;
+        org.bukkit.Location to = event.getTo();
+        if (to.getWorld() == null) return;
         if (!isGameActive()) return;
         Player player = event.getPlayer();
-        Action action = event.getAction();
-        if (action == Action.RIGHT_CLICK_BLOCK) {
-            if (event.getClickedBlock() != null && event.getClickedBlock().getType() == Material.END_PORTAL_FRAME) {
+        // 엔드로 이동 시도
+        if (to.getWorld().getEnvironment() == org.bukkit.World.Environment.THE_END) {
+            if (!isEndActivated()) {
                 event.setCancelled(true);
-                Duration left = getEndActivationLeft();
-                String msg = "엔드가 비활성화 상태입니다. 활성화까지 " + formatDuration(left) + " 남았습니다.";
-                player.sendMessage(Component.text(msg, NamedTextColor.RED));
+                player.sendMessage(Component.text("엔드가 활성화되지 않아 엔드 이동이 불가능합니다.", NamedTextColor.RED));
+                if (!isPortalDeathEnabled()) {
+                    player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.FIRE_RESISTANCE, 200, 1));
+                    player.sendMessage(Component.text("portaldeath가 비활성화되어 화염 저항이 부여됩니다. (10초)", NamedTextColor.GRAY));
+                }
+                return;
             }
+            // 엔드가 활성화된 경우: 아무런 추가 조치 없이 자연스럽게 이동
         }
     }
 
@@ -113,7 +135,7 @@ public class NextGen extends JavaPlugin implements Listener {
             Objects.requireNonNull(getCommand("t")).setTabCompleter(commandExecutor);
         }
 
-        getLogger().info("[NextGen] v1.1-java");
+        getLogger().info("[NextGen] v1.2-java");
     }
 
     @EventHandler

@@ -136,6 +136,13 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
                 }
                 handleEndActivationTime(player, args[1]);
                 break;
+            case "portaldeath":
+                if (args.length < 2) {
+                    player.sendMessage(Component.text("Usage: /nextgen portaldeath <true|false>", NamedTextColor.RED));
+                    return true;
+                }
+                handlePortalDeath(player, args[1]);
+                break;
             case "time":
                 handleTime(player);
                 break;
@@ -144,6 +151,22 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
                 break;
         }
         return true;
+    }
+
+    private void handlePortalDeath(Player player, String value) {
+        boolean enabled;
+        if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+            enabled = Boolean.parseBoolean(value);
+        } else {
+            player.sendMessage(Component.text("true 또는 false만 입력 가능합니다.", NamedTextColor.RED));
+            return;
+        }
+        plugin.setPortalDeathEnabled(enabled);
+        if (enabled) {
+            player.sendMessage(Component.text("엔드 포탈 진입 시 용암에 빠져 즉사합니다.", NamedTextColor.RED));
+        } else {
+            player.sendMessage(Component.text("엔드 포탈 진입 시 10초간 화염 저항이 부여됩니다.", NamedTextColor.YELLOW));
+        }
     }
 
     private void handleTime(Player player) {
@@ -364,19 +387,20 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(Player player) {
-    player.sendMessage(Component.text("[NextGen] v1.1-java", NamedTextColor.GOLD));
+    player.sendMessage(Component.text("[NextGen] v1.2-java", NamedTextColor.GOLD));
     player.sendMessage(Component.text("/nextgen start - 게임 시작", NamedTextColor.YELLOW));
     player.sendMessage(Component.text("/nextgen abort - 게임 중단", NamedTextColor.YELLOW));
     player.sendMessage(Component.text("/nextgen border <500-5000> - 월드보더 크기 변경", NamedTextColor.YELLOW));
     player.sendMessage(Component.text("/nextgen reload - 서버 새로고침", NamedTextColor.YELLOW));
     player.sendMessage(Component.text("/nextgen showtimer - 엔드 활성화 타이머", NamedTextColor.YELLOW));
     player.sendMessage(Component.text("/nextgen endactivationtime - 엔드 활성화 시간", NamedTextColor.YELLOW));
+    player.sendMessage(Component.text("/nextgen portaldeath <true|false> - 포탈 진입 시 사망", NamedTextColor.YELLOW));
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("start", "abort", "border", "reload", "showtimer", "endactivationtime", "t");
+            return Arrays.asList("start", "abort", "border", "reload", "showtimer", "endactivationtime", "portaldeath");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("border")) {
             return Arrays.asList("1000", "1500", "2000");
@@ -386,6 +410,9 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("endactivationtime")) {
             return Arrays.asList("2h", "1h30m", "45m", "10m");
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("portaldeath")) {
+            return Arrays.asList("true", "false");
         }
         return null;
     }
