@@ -19,4 +19,12 @@ Java 25 `temurin`(Oracle의 [최신 Java](https://www.oracle.com/java/technologi
   - `border <n>` - 월드보더 크기 변경
   - `showtimer <true|false>` - 엔드 활성화 타이머
   - `endactivationtime <format>` - 엔드 활성화 시간
-  - `t` - 남은 엔드 활성화 시간 확인
+
+`/t` - 남은 엔드 활성화 시간 확인
+
+### 기본 옵션
+```yml
+border: 1500
+showtimer: false
+endactivationtime: 2h
+```
