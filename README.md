@@ -4,7 +4,8 @@
 >[!IMPORTANT]
 > 이 플러그인을 유튜브와 같은 영상 플랫폼에 사용할 경우 플러그인 링크와 다음의 출처를 남겨주세요.
 >
-> 제작자: 나포키(naforky-dev)
+> 아이디어: 나포키
+> 제작자: `naforky-dev`
 
 
 ### License
@@ -36,3 +37,6 @@ showtimer: false
 endactivationtime: 2h
 portaldeath: true
 ```
+
+---
+(c) 2025 [나포키(naforky)](https://youtube.com/@나포키), [naforky-dev](https://github.com/naforky-dev). All rights reserved.
