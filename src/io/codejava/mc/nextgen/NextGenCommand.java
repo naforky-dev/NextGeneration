@@ -31,7 +31,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.papermc.paper.event.player.PlayerRespawnEvent;
+import io.papermc.paper.event.player.PlayerRespawnEvent; // for onPlayerRespawn
 
 public class NextGenCommand implements CommandExecutor, TabCompleter {
 
