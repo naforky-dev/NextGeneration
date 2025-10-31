@@ -31,8 +31,9 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-public class NextGenCommand implements CommandExecutor, TabCompleter {
+import io.papermc.paper.event.player.PlayerRespawnEvent;
 
+public class NextGenCommand implements CommandExecutor, TabCompleter {
 
     private final NextGen plugin;
     private boolean showTimer = false;
@@ -62,8 +63,8 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
     private void checkEndActivationTimer() {
         if (endActivationStart == null || endActivated) return;
         Duration left = getEndActivationLeft();
+        playerShowTimer.put(player, Boolean.valueOf(show));
         updateBossBar();
-        long seconds = left.getSeconds();
         if (seconds <= 0) {
             endActivated = true;
             Bukkit.broadcast(Component.text("엔드가 활성화되었습니다!", NamedTextColor.LIGHT_PURPLE));
@@ -89,12 +90,6 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
             sender.sendMessage("이 명령어는 플레이어만 사용 가능합니다.");
-            return true;
-        }
-
-        // If this command was invoked as the independent '/t' command, show time immediately
-        if (command.getName().equalsIgnoreCase("t")) {
-            handleTime(player);
             return true;
         }
 
@@ -136,16 +131,6 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
                 }
                 handleEndActivationTime(player, args[1]);
                 break;
-            case "portaldeath":
-                if (args.length < 2) {
-                    player.sendMessage(Component.text("Usage: /nextgen portaldeath <true|false>", NamedTextColor.RED));
-                    return true;
-                }
-                handlePortalDeath(player, args[1]);
-                break;
-            case "time":
-                handleTime(player);
-                break;
             default:
                 sendHelp(player);
                 break;
@@ -153,20 +138,79 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    private void handlePortalDeath(Player player, String value) {
-        boolean enabled;
-        if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
-            enabled = Boolean.parseBoolean(value);
-        } else {
-            player.sendMessage(Component.text("true 또는 false만 입력 가능합니다.", NamedTextColor.RED));
-            return;
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        
+        // **PaperMC Check:** Use isBedSpawn() or isAnchorSpawn() for a reliable check.
+        // If neither is true, or if isMissingRespawnBlock() is true (e.g., bed was obstructed/destroyed),
+        // the player is respawning at the world spawn or another non-bed/anchor location.
+        // The most direct way to check for a *failed* bed respawn is often:
+        boolean hasRespawnPoint = event.isBedSpawn() || event.isAnchorSpawn();
+
+        if (!hasRespawnPoint || event.isMissingRespawnBlock()) {
+            
+            // Player does not have a valid respawn point, so calculate a random location
+            Location randomSpawn = findRandomSafeLocationInWorldBorder(player.getWorld());
+
+            if (randomSpawn != null) {
+                // Set the new respawn location
+                event.setRespawnLocation(randomSpawn);
+                player.sendMessage(Component.text("리스폰 설정이 되어있는 침대가 없어 랜덤 위치에서 스폰됩니다.", NamedTextColor.YELLOW));
+            } else {
+                // Handle the rare case where no safe location was found
+                player.sendMessage(Component.text("스폰할 적절한 랜덤 위치를 찾지 못하여 월드 스폰에서 스폰됩니다.", NamedTextColor.RED));
+            }
         }
-        plugin.setPortalDeathEnabled(enabled);
-        if (enabled) {
-            player.sendMessage(Component.text("엔드 포탈 진입 시 용암에 빠져 즉사합니다.", NamedTextColor.RED));
-        } else {
-            player.sendMessage(Component.text("엔드 포탈 진입 시 10초간 화염 저항이 부여됩니다.", NamedTextColor.YELLOW));
+    }
+
+    // --- Helper Method to Find Random Location ---
+    
+    // You should put this method in your main plugin class or a utility class
+    // and make the world configurable if needed.
+    private Location findRandomSafeLocationInWorldBorder(World world) {
+        WorldBorder border = world.getWorldBorder();
+        Location center = border.getCenter();
+        double size = border.getSize() / 2.0; // Half the size for radius
+        
+        int maxAttempts = 50;
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+
+        for (int i = 0; i < maxAttempts; i++) {
+            // Calculate random X and Z coordinates within the world border radius
+            double minX = center.getX() - size + 1; // +1 to stay inside
+            double maxX = center.getX() + size - 1; // -1 to stay inside
+            double minZ = center.getZ() - size + 1; // +1 to stay inside
+            double maxZ = center.getZ() + size - 1; // -1 to stay inside
+
+            double randomX = random.nextDouble(minX, maxX);
+            double randomZ = random.nextDouble(minZ, maxZ);
+            
+            // Find a safe Y level (e.g., top-most block that is safe)
+            int y = world.getHighestBlockYAt((int) randomX, (int) randomZ);
+            
+            Location location = new Location(world, randomX, y, randomZ);
+
+            // Important: You must ensure the location is "safe" (not in lava, water, a wall, etc.)
+            if (isSafeSpawnLocation(location)) {
+                // Center the player on the block and add a small Y offset (0.5 to be sure)
+                return location.add(0.5, 0.5, 0.5); 
+            }
         }
+        
+        return null; // Return null if no safe location is found after max attempts
+    }
+    
+    // --- Basic Safety Check ---
+    private boolean isSafeSpawnLocation(Location loc) {
+        if (loc.getBlockY() < loc.getWorld().getMinHeight() + 2) return false;
+        
+        org.bukkit.block.Block feet = loc.getBlock();
+        org.bukkit.block.Block head = feet.getRelative(0, 1, 0);
+        org.bukkit.block.Block under = feet.getRelative(0, -1, 0);
+
+        // Check if the two upper blocks are not solid/safe and the block under is solid/safe to stand on
+        return !feet.getType().isSolid() && !head.getType().isSolid() && under.getType().isSolid() && !under.isLiquid();
     }
 
     private void handleTime(Player player) {
@@ -387,14 +431,14 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendHelp(Player player) {
-    player.sendMessage(Component.text("[NextGen] v1.2-java", NamedTextColor.GOLD));
-    player.sendMessage(Component.text("/nextgen start - 게임 시작", NamedTextColor.YELLOW));
-    player.sendMessage(Component.text("/nextgen abort - 게임 중단", NamedTextColor.YELLOW));
-    player.sendMessage(Component.text("/nextgen border <500-5000> - 월드보더 크기 변경", NamedTextColor.YELLOW));
-    player.sendMessage(Component.text("/nextgen reload - 서버 새로고침", NamedTextColor.YELLOW));
-    player.sendMessage(Component.text("/nextgen showtimer - 엔드 활성화 타이머", NamedTextColor.YELLOW));
-    player.sendMessage(Component.text("/nextgen endactivationtime - 엔드 활성화 시간", NamedTextColor.YELLOW));
-    player.sendMessage(Component.text("/nextgen portaldeath <true|false> - 포탈 진입 시 사망", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("[NextGen] v1.3-java", NamedTextColor.GOLD));
+        player.sendMessage(Component.text("/nextgen start - 게임 시작", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("/nextgen abort - 게임 중단", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("/nextgen border <500-5000> - 월드보더 크기 변경", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("/nextgen reload - 서버 새로고침", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("/nextgen showtimer - 엔드 활성화 타이머", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("/nextgen endactivationtime - 엔드 활성화 시간", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("/nextgen portaldeath - 엔드 비활성화시 포탈 사망 설정", NamedTextColor.YELLOW));
     }
 
     @Override
@@ -406,13 +450,13 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
             return Arrays.asList("1000", "1500", "2000");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("showtimer")) {
-            return Arrays.asList("true", "false");
+            return Arrays.asList(true, false);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("endactivationtime")) {
             return Arrays.asList("2h", "1h30m", "45m", "10m");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("portaldeath")) {
-            return Arrays.asList("true", "false");
+            return Arrays.asList(true, false);
         }
         return null;
     }
