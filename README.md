@@ -53,8 +53,8 @@ portaldeath: true
 
 ### 특수 규칙
   - 사망 시 리스폰 설정된 침대가 없는 경우 랜덤 위치 스폰
-  >[!NOTE]
-  >랜덤 리스폰 할 적절한 위치를 찾지 못한 경우 월드 스폰에서 스폰
+    - >[!NOTE]
+      >랜덤 리스폰 할 적절한 위치를 찾지 못한 경우 월드 스폰에서 스폰
 
 ---
 > (c) 2025 [나포키(naforky)](https://youtube.com/@나포키), [naforky-dev](https://github.com/naforky-dev). All rights reserved.
