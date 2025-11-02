@@ -33,6 +33,8 @@ import java.util.Map;
 
 import io.papermc.paper.event.player.PlayerRespawnEvent; // for onPlayerRespawn
 
+import org.bukkit.event.player.PlayerRespawnEvent;
+
 public class NextGenCommand implements CommandExecutor, TabCompleter {
 
     private final NextGen plugin;
@@ -450,13 +452,13 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
             return Arrays.asList("1000", "1500", "2000");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("showtimer")) {
-            return Arrays.asList(true, false);
+            return Arrays.asList("true", "false");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("endactivationtime")) {
             return Arrays.asList("2h", "1h30m", "45m", "10m");
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("portaldeath")) {
-            return Arrays.asList(true, false);
+            return Arrays.asList("true", "false");
         }
         return null;
     }
