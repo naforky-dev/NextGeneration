@@ -252,7 +252,7 @@ public class NextGen extends JavaPlugin implements Listener {
             Objects.requireNonNull(getCommand("t")).setTabCompleter(commandExecutor);
         }
 
-        getLogger().info("[NextGen] v1.2-java");
+        getLogger().info("[NextGen] v1.3-java");
     }
 
     @EventHandler

@@ -451,9 +451,9 @@ public class NextGenCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(Component.text("/nextgen start - 게임 시작", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/nextgen abort - 게임 중단", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/nextgen border <500-5000> - 월드보더 크기 변경", NamedTextColor.YELLOW));
-        player.sendMessage(Component.text("/nextgen reload - 서버 새로고침 (권장 ❌)", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("/nextgen reload - 서버 새로고침", NamedTextColor.YELLOW));
         // --- NEW: Added reloadconfig command ---
-        player.sendMessage(Component.text("/nextgen reloadconfig - 플러그인 설정 리로드 (권장 ✅)", NamedTextColor.YELLOW));
+        player.sendMessage(Component.text("/nextgen reloadconfig - 플러그인 설정 다시 로드", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/nextgen time or /t - 남은 시간 확인", NamedTextColor.YELLOW)); // Updated help
         player.sendMessage(Component.text("/nextgen showtimer <true|false> - 엔드 활성화 타이머 표시/숨김", NamedTextColor.YELLOW));
         player.sendMessage(Component.text("/nextgen endactivationtime <duration> - 엔드 활성화 시간 설정", NamedTextColor.YELLOW));
