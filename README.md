@@ -58,6 +58,9 @@ nextgen-settings:
 ```
 
 ### 기본 옵션
+>[!NOTE]
+>아래의 설정은 위의 `config.yml` 파일이 없거나 잘못 작성된 경우
+>플러그인이 기본적으로 로드하는 설정입니다.
 ```yml
 border: 1500
 showtimer: false
