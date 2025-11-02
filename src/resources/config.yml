@@ -1,0 +1,13 @@
+# NextGen Plugin Configuration
+nextgen-settings:
+  # The default border size (in blocks) for a new game.
+  # This can be overridden in-game with /nextgen border <size>
+  default-border-size: 2000
+
+  # The default time until the End dimension activates.
+  # Use formats like: 2h, 1h30m, 45m, 10m
+  default-end-time: "2h"
+
+  # If true, players die when entering a non-activated End portal.
+  # If false, they are blocked and get 10s of Fire Resistance.
+  portal-death-on-entry: true

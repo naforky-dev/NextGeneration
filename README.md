@@ -28,6 +28,9 @@ Java 25 `temurin`(Oracle의 [최신 Java](https://www.oracle.com/java/technologi
   - `showtimer <true|false>` - 엔드 활성화 타이머
   - `endactivationtime <format>` - 엔드 활성화 시간
   - `portaldeath <true|false>` - 엔드 포탈 사망 설정
+  - `reloadconfig` - `config.yml` 설정 다시 로드
+
+`config.yml` - `/plugins/NextGen` 경로에 생성 가능한 설정 파일(서버 새로고침 시 설정 리셋 방지)
 
 `/t` - 남은 엔드 활성화 시간 확인
 
