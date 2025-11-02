@@ -72,18 +72,21 @@ portaldeath: true
 `border <n>`:
   - `n`에 숫자 형식으로 원하는 월드보더의 크기를 입력
   - 예시: `/nextgen border 1500`(월드보더 크기 `1500x1500`)
+
 `showtimer <true|false>`:
   - 설정값이 `true`일 경우 게임이 실행되는 동안 엔드 활성화 보스바 표시
+
 `endactivationtime <format>`:
   - `format`에 `1h2m3s`형식으로 엔드 활성화까지의 시간 설정
   - 예시: `/nextgen endactivationtime 2h0m15s`(엔드 활성화까지 `2시간 0분 15초`)
+
 `portaldeath <true|false>`:
   - 설정값이 `false`일 경우 엔드 포탈 진입 시 엔드가 비활성화된 경우 사망 방지(화염 저항 10초)
 
 ### 특수 규칙
-  사망 시 리스폰 설정된 침대가 없는 경우 랜덤 위치 스폰
+  사망 시 리스폰 설정된 침대가 없는 경우 랜덤 위치 스폰됩니다.
   >[!NOTE]
-  >랜덤 리스폰 할 적절한 위치를 찾지 못한 경우 월드 스폰에서 스폰
+  >랜덤 리스폰 할 적절한 위치를 찾지 못한 경우 월드 스폰에서 스폰됩니다.
 
 ---
 > (c) 2025 [나포키(naforky)](https://youtube.com/@나포키), [naforky-dev](https://github.com/naforky-dev). All rights reserved.
