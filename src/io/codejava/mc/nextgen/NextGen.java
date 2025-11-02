@@ -280,7 +280,7 @@ public class NextGen extends JavaPlugin implements Listener {
             final Title title = Title.title(mainTitle, Component.empty(), times); // Component.empty() means no subtitle
 
             // Show the title to every player online
-            for (Player onlinePlayer : BukK-t.getOnlinePlayers()) {
+            for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 onlinePlayer.showTitle(title);
             }
             
