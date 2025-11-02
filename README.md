@@ -34,6 +34,29 @@ Java 25 `temurin`(Oracle의 [최신 Java](https://www.oracle.com/java/technologi
 
 `/t` - 남은 엔드 활성화 시간 확인
 
+### 설정 파일
+>[!IMPORTANT]
+>`config.yml` 파일을 아래의 방법 또는 구조와 다르게 생성할 경우 기본값이 로드됩니다.
+>서버 로그에서 설정이 적용되었는지 확인할 수 있습니다.
+
+```yml
+# NextGen 플러그인 설정
+nextgen-settings:
+  # 모든 게임에서 생성되는 월드보더의 기본 크기(블록 단위).
+  # 게임 내에서 /nextgen border <size>를 이용하여 임시로 변경 가능.
+  default-border-size: 2000
+
+  # 엔드 차원 활성화까지의 기본 시간.
+  # 다음과 같은 포맷 사용 가능: 2h, 1h30m, 45m, 10m
+  # 게임 내에서 /nextgen endactivationtime <format>를 이용하여 임시로 변경 가능.
+  default-end-time: "2h"
+
+  # true일 경우, 플레이어들이 포탈에 진입 시 아래의 용암에 빠져 사망할 수 있음.
+  # false일 경우, 플레이어들이 용암에 빠졌을 때 10초 간 화염 저항 부여.
+  # 게임 내에서 /nextgen portaldeath <true|false>를 이용하여 임시로 변경 가능.
+  portal-death-on-entry: true
+```
+
 ### 기본 옵션
 ```yml
 border: 1500
