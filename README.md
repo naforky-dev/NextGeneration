@@ -2,6 +2,7 @@
 한정된 크기의 월드에서 가장 먼저 `[그다음 세대]` 발전 과제를 깨는 플레이어가 승리하는 플러그인
 
 [![Build Plugin](https://github.com/naforky-dev/NextGeneration/actions/workflows/build.yml/badge.svg)](https://github.com/naforky-dev/NextGeneration/actions/workflows/build.yml)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 >[!IMPORTANT]
 > 이 플러그인을 유튜브와 같은 영상 플랫폼에 사용할 경우 플러그인 링크와 다음의 출처를 남겨주세요.
